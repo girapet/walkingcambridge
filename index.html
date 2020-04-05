@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Walking Cambridge</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+
+      #street {
+        position: absolute;
+        right: 70px;
+        top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <select id="street">
+      <option></option>
+    </select>
+    <script>
+      function initMap() {
+        const filePath = 'https://storage.cloud.google.com/walkingcambridge/';
+        const streetSelect = document.getElementById('street');
+
+        const map = new google.maps.Map(document.getElementById('map'), {
+          center: { lat: 42.3767, lng: -71.1149 },
+          zoom: 13,
+          mapTypeId: 'roadmap',
+          tilt: 0,
+          styles: [
+            {
+              "featureType": "poi",
+              "stylers": [
+                { "visibility": "off" }
+              ]
+            }            
+          ]
+        });
+
+        const boundaryData = new google.maps.Data();
+        boundaryData.setMap(map);
+        boundaryData.setStyle({
+          fillOpacity: 0,
+          strokeColor: 'gray',
+          strokeWeight: 3
+        });
+        boundaryData.loadGeoJson(filePath + 'boundary.geojson');
+
+        const midpointData = new google.maps.Data();
+        midpointData.setMap(map);
+        midpointData.setStyle({
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: 'red',
+            fillOpacity: 1,
+            strokeColor: 'black',
+            scale: 4,
+            strokeWeight: 0.5
+          }
+        });
+        midpointData.loadGeoJson(filePath + 'midpoint.geojson', { idPropertyName: 'fid' }, loadStreets);
+        midpointData.addListener('click', function (e) {
+          streetSelect.value = e.feature.getProperty('fid');
+        });
+        
+        streetSelect.addEventListener('change', e => {
+          const feature = midpointData.getFeatureById(e.target.value);
+
+          if (feature) {
+            map.setCenter(feature.getGeometry().get());
+            map.setZoom(15);
+          }
+        });
+
+        function loadStreets(features) {
+          const options = features.map(f => {
+            const opt = document.createElement('option');
+            opt.value = f.getProperty('fid');
+            opt.text = f.getProperty('Street');
+            return opt;
+          });
+          options.sort((a, b) => a.text < b.text ? -1 : a.text > b.text ? 1 : 0);
+          options.forEach(opt => {
+            streetSelect.appendChild(opt);
+          });
+        }
+      }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl0oFTg_oyfIyFutmD1_smTuMR_wqGMW4&callback=initMap"></script>
+  </body>
