@@ -30,7 +30,6 @@
     </select>
     <script>
       function initMap() {
-        const filePath = 'https://storage.cloud.google.com/walkingcambridge/';
         const streetSelect = document.getElementById('street');
 
         const map = new google.maps.Map(document.getElementById('map'), {
@@ -55,7 +54,7 @@
           strokeColor: 'gray',
           strokeWeight: 3
         });
-        boundaryData.loadGeoJson(filePath + 'boundary.geojson');
+        boundaryData.loadGeoJson('boundary.geojson');
 
         const midpointData = new google.maps.Data();
         midpointData.setMap(map);
@@ -69,7 +68,7 @@
             strokeWeight: 0.5
           }
         });
-        midpointData.loadGeoJson(filePath + 'midpoint.geojson', { idPropertyName: 'fid' }, loadStreets);
+        midpointData.loadGeoJson('midpoint.geojson', { idPropertyName: 'fid' }, loadStreets);
         midpointData.addListener('click', function (e) {
           streetSelect.value = e.feature.getProperty('fid');
         });
